@@ -90,6 +90,21 @@ func readDigits(runes []rune) (remain []rune, digits []rune) {
 	return
 }
 
+func readRunes(runes []rune) (remain []rune, readed []rune) {
+	readed = runes
+	remain = runes
+
+	for len(remain) > 0 {
+		if isSpace(remain[0]) || isSign(remain[0]) {
+			readed = readed[0 : len(readed)-len(remain)]
+			return
+		}
+		remain = remain[1:]
+	}
+
+	return
+}
+
 func readSign(runes []rune) (remain []rune, sign rune) {
 	remain = runes
 
@@ -116,13 +131,10 @@ func StringSum(input string) (output string, err error) {
 	var stage = readDigits1
 
 	if len(runes) == 0 {
-		return "", errorEmptyInput
+		return "", fmt.Errorf("%w", errorEmptyInput)
 	}
 
 	for len(runes) > 0 {
-		fmt.Println(runes)
-		fmt.Println(stage)
-
 		switch {
 		case isSign(runes[0]):
 			runes, tmprune = readSign(runes)
@@ -133,17 +145,18 @@ func StringSum(input string) (output string, err error) {
 					sign = negative
 				}
 			} else if stage == finished {
-				return "", errorNotTwoOperands
+				return "", fmt.Errorf("%w", errorNotTwoOperands)
 			} else {
 				op = tmprune
+				sign = positive
 				stage = readDigits2
 			}
 		case isDigit(runes[0]):
 			if stage == finished {
-				return "", errorNotTwoOperands
+				return "", fmt.Errorf("%w", errorNotTwoOperands)
 			}
-			runes, digit = readDigits(runes)
-			fmt.Println(digit)
+			//runes, digit = readDigits(runes)
+			runes, digit = readRunes(runes)
 			num, err = strconv.Atoi(string(digit))
 			if err != nil {
 				return "", fmt.Errorf("Unable to parse int from str: %w", err)
@@ -162,7 +175,7 @@ func StringSum(input string) (output string, err error) {
 	}
 
 	if stage != finished {
-		return "", errorNotTwoOperands
+		return "", fmt.Errorf("%w", errorNotTwoOperands)
 	}
 
 	var result int
